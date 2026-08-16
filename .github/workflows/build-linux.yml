@@ -186,6 +186,32 @@ jobs:
       with:
         mode: gl
 
+    - name: Clone Radient Test Data
+      id: radient_test_data
+      if: ${{ (success() || failure()) && steps.build.outcome == 'success' }}
+      uses: actions/checkout@v6
+      with:
+        repository: DiligentGraphics/DiligentTestData
+        ref:        radient
+        path:       RadientTestData
+
+    - name: Clone glTF Sample Assets
+      id: gltf_sample_assets
+      if: ${{ (success() || failure()) && steps.build.outcome == 'success' }}
+      uses: actions/checkout@v6
+      with:
+        repository: KhronosGroup/glTF-Sample-Assets
+        ref:        ${{env.DILIGENT_GLTF_SAMPLE_ASSETS_COMMIT}}
+        path:       glTF-Sample-Assets
+
+    - name: RadientRenderTest VK
+      if: ${{ (success() || failure()) && steps.build.outcome == 'success' && steps.radient_test_data.outcome == 'success' && steps.gltf_sample_assets.outcome == 'success' }}
+      uses: DiligentGraphics/github-action/run-radient-render-tests@v25
+      with:
+        mode:        vk_sw
+        models-path: ${{github.workspace}}/glTF-Sample-Assets
+        assets-path: ${{github.workspace}}/RadientTestData
+
 
       # Samples tests
     - name: Sample Tests Vk
